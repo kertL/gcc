@@ -29,9 +29,9 @@ RUN set -ex; \
 		gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$key"; \
 	done
 
-# Last Modified: 2017-10-10
-ENV GCC_VERSION 5.5.0
-# Docker EOL: 2018-10-10
+# Last Modified: 2017-12-20
+ENV GCC_VERSION 5.2.0
+# Docker EOL: 2018-12-20
 
 RUN set -ex; \
 	\
@@ -43,11 +43,11 @@ RUN set -ex; \
 	apt-get install -y --no-install-recommends $buildDeps; \
 	rm -r /var/lib/apt/lists/*; \
 	\
-	curl -fSL "http://ftpmirror.gnu.org/gcc/gcc-$GCC_VERSION/gcc-$GCC_VERSION.tar.xz" -o gcc.tar.xz; \
-	curl -fSL "http://ftpmirror.gnu.org/gcc/gcc-$GCC_VERSION/gcc-$GCC_VERSION.tar.xz.sig" -o gcc.tar.xz.sig; \
+	curl -fSL "http://ftpmirror.gnu.org/gcc/gcc-$GCC_VERSION/gcc-$GCC_VERSION.tar.bz2" -o gcc.tar.xz; \
+	curl -fSL "http://ftpmirror.gnu.org/gcc/gcc-$GCC_VERSION/gcc-$GCC_VERSION.tar.bz2.sig" -o gcc.tar.xz.sig; \
 	gpg --batch --verify gcc.tar.xz.sig gcc.tar.xz; \
 	mkdir -p /usr/src/gcc; \
-	tar -xf gcc.tar.xz -C /usr/src/gcc --strip-components=1; \
+	tar -xjf gcc.tar.bz2 -C /usr/src/gcc --strip-components=1; \
 	rm gcc.tar.xz*; \
 	\
 	cd /usr/src/gcc; \
@@ -67,36 +67,13 @@ RUN set -ex; \
 	dir="$(mktemp -d)"; \
 	cd "$dir"; \
 	\
-	extraConfigureArgs=''; \
-	dpkgArch="$(dpkg --print-architecture)"; \
-	case "$dpkgArch" in \
-# with-arch: https://anonscm.debian.org/viewvc/gcccvs/branches/sid/gcc-6/debian/rules2?revision=9450&view=markup#l491
-# with-float: https://anonscm.debian.org/viewvc/gcccvs/branches/sid/gcc-6/debian/rules.defs?revision=9487&view=markup#l416
-# with-mode: https://anonscm.debian.org/viewvc/gcccvs/branches/sid/gcc-6/debian/rules.defs?revision=9487&view=markup#l376
-		armel) \
-			extraConfigureArgs="$extraConfigureArgs --with-arch=armv4t --with-float=soft" \
-			;; \
-		armhf) \
-			extraConfigureArgs="$extraConfigureArgs --with-arch=armv7-a --with-float=hard --with-fpu=vfpv3-d16 --with-mode=thumb" \
-			;; \
-		\
-# with-arch-32: https://anonscm.debian.org/viewvc/gcccvs/branches/sid/gcc-6/debian/rules2?revision=9450&view=markup#l590
-		i386) \
-			osVersionID="$(set -e; . /etc/os-release; echo "$VERSION_ID")"; \
-			case "$osVersionID" in \
-				8) extraConfigureArgs="$extraConfigureArgs --with-arch-32=i586" ;; \
-				*) extraConfigureArgs="$extraConfigureArgs --with-arch-32=i686" ;; \
-			esac; \
-# TODO for some reason, libgo + i386 fails on https://github.com/gcc-mirror/gcc/blob/gcc-7_1_0-release/libgo/runtime/proc.c#L154
-# "error unknown case for SETCONTEXT_CLOBBERS_TLS"
-			;; \
-	esac; \
+	extraConfigureArgs=' --with-arch-32=i686'; \
 	\
 	gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)"; \
 	/usr/src/gcc/configure \
 		--build="$gnuArch" \
-		--disable-multilib \
-		--enable-languages=c,c++,fortran,go \
+		--with-default-libstdcxx-abi=gcc4-compatible \
+		--enable-languages=c,c++,go \
 		$extraConfigureArgs \
 	; \
 	make -j "$(nproc)"; \
