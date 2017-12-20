@@ -1,6 +1,6 @@
 FROM buildpack-deps:jessie
 
-RUN dpkg --add-architecture i386; apt-get update; apt-get install -y gcc-multilib 
+RUN dpkg --add-architecture i386; apt-get update; apt-get install -y gcc-multilib; apt-get clean ; apt-get autoremove 
 
 # Last Modified: 2017-12-20
 ENV GCC_VERSION 5.2.0
