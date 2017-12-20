@@ -43,12 +43,12 @@ RUN set -ex; \
 	apt-get install -y --no-install-recommends $buildDeps; \
 	rm -r /var/lib/apt/lists/*; \
 	\
-	curl -fSL "http://ftpmirror.gnu.org/gcc/gcc-$GCC_VERSION/gcc-$GCC_VERSION.tar.bz2" -o gcc.tar.xz; \
-	curl -fSL "http://ftpmirror.gnu.org/gcc/gcc-$GCC_VERSION/gcc-$GCC_VERSION.tar.bz2.sig" -o gcc.tar.xz.sig; \
-	gpg --batch --verify gcc.tar.xz.sig gcc.tar.xz; \
+	curl -fSL "http://ftpmirror.gnu.org/gcc/gcc-$GCC_VERSION/gcc-$GCC_VERSION.tar.bz2" -o gcc.tar.bz2; \
+	curl -fSL "http://ftpmirror.gnu.org/gcc/gcc-$GCC_VERSION/gcc-$GCC_VERSION.tar.bz2.sig" -o gcc.tar.bz2.sig; \
+	gpg --batch --verify gcc.tar.bz2.sig gcc.tar.bz2; \
 	mkdir -p /usr/src/gcc; \
 	tar -xjf gcc.tar.bz2 -C /usr/src/gcc --strip-components=1; \
-	rm gcc.tar.xz*; \
+	rm gcc.tar.bz2*; \
 	\
 	cd /usr/src/gcc; \
 	\
